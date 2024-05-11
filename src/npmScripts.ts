@@ -11,6 +11,7 @@ import {
   WorkspaceFolder,
   workspace,
 } from 'vscode';
+import { ScriptGroupTreeItem } from './ScriptGroupTreeItem';
 import { ScriptTreeItem } from './ScriptTreeItem';
 import { WorkspaceTreeItem } from './WorkspaceTreeItem';
 import { MaybeScript, ScriptEventEmitter } from './types';
@@ -40,16 +41,18 @@ export class NpmScriptsNodeProvider
     this._onDidChangeTreeData.fire(undefined);
   }
 
-  getTreeItem(element: ScriptTreeItem | WorkspaceTreeItem): TreeItem {
+  getTreeItem(
+    element: ScriptTreeItem | ScriptGroupTreeItem | WorkspaceTreeItem
+  ): TreeItem {
     return element;
   }
 
   getChildren(
-    element?: ScriptTreeItem | WorkspaceTreeItem
-  ): Thenable<ScriptTreeItem[] | WorkspaceTreeItem[]> {
+    element?: ScriptTreeItem | WorkspaceTreeItem | ScriptGroupTreeItem
+  ): Thenable<(ScriptTreeItem | WorkspaceTreeItem)[] | WorkspaceTreeItem[]> {
     return new Promise((resolve: Function) => {
       const folders = workspace.workspaceFolders!;
-      if (element) {
+      if (element instanceof WorkspaceTreeItem) {
         // Workspace render scripts
         const folder = folders.find((o) => o.name === element.label)!;
         const packageJsonPath: string = path.join(
@@ -57,6 +60,8 @@ export class NpmScriptsNodeProvider
           'package.json'
         );
         this.renderSingleWorkspace(resolve, packageJsonPath);
+      } else if (element instanceof ScriptGroupTreeItem) {
+        resolve(element.children);
       } else if (folders && folders.length > 1) {
         // Root render workspaces
         this.renderMultipleWorkspaces(resolve, folders);
@@ -132,39 +137,94 @@ export class NpmScriptsNodeProvider
    *
    * @private
    * @param {string} packageJsonPath
-   * @returns {ScriptTreeItem[]}
+   * @returns {(ScriptTreeItem | ScriptGroupTreeItem)[]}
    * @memberof ScriptNodeProvider
    */
   private mkTreeItemsFromPackageScripts(
     packageJsonPath: string
-  ): ScriptTreeItem[] {
-    const treeItems: ScriptTreeItem[] = [];
+  ): (ScriptTreeItem | ScriptGroupTreeItem)[] {
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
     const workspaceDir: string = path.dirname(packageJsonPath);
-    const toScript = (
-      scriptName: string,
-      scriptCommand: string
-    ): ScriptTreeItem => {
-      const cmdObject = {
-        title: 'Run Script',
-        command: 'npmScripts.executeCommand',
-        arguments: [scriptName, workspaceDir],
-      };
 
-      return new ScriptTreeItem(
-        scriptName,
-        TreeItemCollapsibleState.None,
-        scriptCommand,
-        cmdObject
-      );
+    const nodes: ScriptNode[] = Object.entries(
+      packageJson.scripts as { [key: string]: string }
+    ).map(([name, command]) => {
+      return { remainderGroupName: name, name, command };
+    });
+
+    return this.getTreeItemsRecursive(nodes, workspaceDir);
+  }
+
+  private getTreeItemsRecursive(
+    packageJsonScripts: ScriptNode[],
+    workspaceDir: string
+  ): (ScriptTreeItem | ScriptGroupTreeItem)[] {
+    // Group scripts by their first word before the colon. If no colon it is a single script.
+    const groupedScripts = packageJsonScripts.reduce((acc, item) => {
+      const [groupName, ...scriptName] = item.remainderGroupName.split(':');
+      const remainderGroupName = scriptName.join(':');
+      if (!acc[groupName]) {
+        acc[groupName] = [];
+      }
+
+      acc[groupName].push({ ...item, remainderGroupName });
+
+      return acc;
+    }, {} as { [key: string]: ScriptNode[] });
+
+    const items: (ScriptTreeItem | ScriptGroupTreeItem)[] = [];
+    for (const [groupName, scripts] of Object.entries(groupedScripts)) {
+      if (scripts.length === 1) {
+        const [script] = scripts;
+        items.push(
+          this.toScript(groupName, script.name, script.command, workspaceDir)
+        );
+      } else {
+        // Remove the item with no remainder (if exists)
+        const singleScript = scripts.findIndex((s) => !s.remainderGroupName);
+        if (singleScript !== -1) {
+          const script = scripts[singleScript];
+          items.push(
+            this.toScript(groupName, script.name, script.command, workspaceDir)
+          );
+          scripts.splice(singleScript, 1);
+        }
+
+        if (scripts.length > 0) {
+          const children = this.getTreeItemsRecursive(scripts, workspaceDir);
+          items.push(
+            new ScriptGroupTreeItem(
+              groupName,
+              TreeItemCollapsibleState.Collapsed,
+              `${groupName} Scripts`,
+              children
+            )
+          );
+        }
+      }
+    }
+
+    return items;
+  }
+
+  private toScript(
+    label: string,
+    scriptName: string,
+    scriptCommand: string,
+    workspaceDir: string
+  ): ScriptTreeItem {
+    const cmdObject = {
+      title: 'Run Script',
+      command: 'npmScripts.executeCommand',
+      arguments: [scriptName, workspaceDir],
     };
 
-    if (packageJson.scripts) {
-      Object.keys(packageJson.scripts).forEach((key) => {
-        treeItems.push(toScript(key, packageJson.scripts[key]));
-      });
-    }
-    return treeItems;
+    return new ScriptTreeItem(
+      label,
+      TreeItemCollapsibleState.None,
+      `[${scriptName}] ${scriptCommand}`,
+      cmdObject
+    );
   }
 
   /**
@@ -185,3 +245,5 @@ export class NpmScriptsNodeProvider
     return true;
   }
 }
+
+type ScriptNode = { remainderGroupName: string; name: string; command: string };

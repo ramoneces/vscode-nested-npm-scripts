@@ -30,7 +30,7 @@
       "type": "object",
       "title": "Nested NPM Scripts configuration",
       "properties": {
-        "npm-scripts.showStartNotification": {
+        "nested-npm-scripts.showStartNotification": {
           "type": "boolean",
           "default": true,
           "description": "Show a notification when a script is run."

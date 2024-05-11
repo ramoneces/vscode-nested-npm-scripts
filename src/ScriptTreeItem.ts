@@ -1,5 +1,10 @@
-import { join as pathJoin } from 'path';
-import { Command, TreeItem, TreeItemCollapsibleState } from 'vscode';
+import {
+  Command,
+  ThemeColor,
+  ThemeIcon,
+  TreeItem,
+  TreeItemCollapsibleState,
+} from 'vscode';
 
 export class ScriptTreeItem extends TreeItem {
   constructor(
@@ -11,26 +16,7 @@ export class ScriptTreeItem extends TreeItem {
     super(label, collapsibleState);
   }
 
-  iconPath = {
-    light: pathJoin(
-      __filename,
-      '..',
-      '..',
-      '..',
-      'resources',
-      'light',
-      'file_type_npm.svg'
-    ),
-    dark: pathJoin(
-      __filename,
-      '..',
-      '..',
-      '..',
-      'resources',
-      'dark',
-      'file_type_npm.svg'
-    ),
-  };
+  iconPath = new ThemeIcon('run', new ThemeColor('terminal.ansiGreen'));
 
   contextValue = 'script';
 }
