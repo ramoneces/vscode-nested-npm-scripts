@@ -1,20 +1,30 @@
 # nested-npm-scripts README
 
-This is the README for your extension "nested-npm-scripts". After writing up a brief description, we recommend including the following sections.
+This extension is a simple tool to organize npm scripts in a nested way. It is a fork of the [NPM-scripts extension](https://github.com/Duroktar/vscode-npm-scripts).
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+The extension automatically detects the `package.json` file in the workspace and displays the scripts in the `Nested NPM Scripts` view. The scripts are organized in a nested way based on the script name. The script name is split by the separator (`:` by default) and the scripts are grouped by the first part of the name, recursively.
 
-For example if there is an image subfolder under your extension project workspace:
+For example, the following scripts:
 
-\!\[feature X\]\(images/feature-x.png\)
+```json
+{
+  "scripts": {
+    "start": "echo 'Starting project'",
+    "build": "echo 'Building project'",
+    "build:client": "echo 'Building client'",
+    "build:server:dev": "echo 'Building server for development'",
+    "build:server:prod": "echo 'Building server for production'"
+  }
+}
+```
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+Will be displayed as:
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+None?
 
 ## Extension Settings
 
@@ -24,48 +34,14 @@ For example:
 
 This extension contributes the following settings:
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- `nested-npm-scripts.separatorCharacter`: The character used to separate the parts of the script name. Default is `:`.
 
 ## Known Issues
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+None?
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
-
 ### 1.0.0
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+Initial release.

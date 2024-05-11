@@ -1,5 +1,5 @@
-export const NPM_SCRIPTS = 'nested-npm-scripts';
+export const NESTED_NPM_SCRIPTS = 'nested-npm-scripts';
 
 export const ConfigOptions = {
-  showStart: 'showStartNotification',
+  separatorCharacter: 'separatorCharacter',
 };

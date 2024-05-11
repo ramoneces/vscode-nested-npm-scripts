@@ -14,14 +14,16 @@ import {
 import { ScriptGroupTreeItem } from './ScriptGroupTreeItem';
 import { ScriptTreeItem } from './ScriptTreeItem';
 import { WorkspaceTreeItem } from './WorkspaceTreeItem';
-import { MaybeScript, ScriptEventEmitter } from './types';
+import { ConfigOptions, NESTED_NPM_SCRIPTS } from './constants';
+import { MaybeScript, ScriptEventEmitter, ScriptNode } from './types';
 
 function getPackageJson(root: string): string {
   return path.join(root, 'package.json');
 }
 
 export class NpmScriptsNodeProvider
-  implements TreeDataProvider<ScriptTreeItem | WorkspaceTreeItem>
+  implements
+    TreeDataProvider<ScriptTreeItem | ScriptGroupTreeItem | WorkspaceTreeItem>
 {
   private readonly _onDidChangeTreeData: ScriptEventEmitter =
     new EventEmitter();
@@ -123,7 +125,7 @@ export class NpmScriptsNodeProvider
           new WorkspaceTreeItem(
             name,
             TreeItemCollapsibleState.Collapsed,
-            `${name} Workspace Folder`
+            `${name} workspace • ${packageJsonPath}`
           )
         );
       }
@@ -147,27 +149,33 @@ export class NpmScriptsNodeProvider
     const workspaceDir: string = path.dirname(packageJsonPath);
 
     const nodes: ScriptNode[] = Object.entries(
-      packageJson.scripts as { [key: string]: string }
+      (packageJson.scripts ?? {}) as { [key: string]: string }
     ).map(([name, command]) => {
-      return { remainderGroupName: name, name, command };
+      return { groupNameRemainder: name, name, command };
     });
 
-    return this.getTreeItemsRecursive(nodes, workspaceDir);
+    const config: vscode.WorkspaceConfiguration =
+      workspace.getConfiguration(NESTED_NPM_SCRIPTS);
+    const separator = config[ConfigOptions.separatorCharacter] || ':';
+
+    return this.getTreeItemsRecursive(nodes, workspaceDir, separator);
   }
 
   private getTreeItemsRecursive(
     packageJsonScripts: ScriptNode[],
-    workspaceDir: string
+    workspaceDir: string,
+    separator: string
   ): (ScriptTreeItem | ScriptGroupTreeItem)[] {
     // Group scripts by their first word before the colon. If no colon it is a single script.
     const groupedScripts = packageJsonScripts.reduce((acc, item) => {
-      const [groupName, ...scriptName] = item.remainderGroupName.split(':');
-      const remainderGroupName = scriptName.join(':');
+      const [groupName, ...scriptName] =
+        item.groupNameRemainder.split(separator);
+      const remainderGroupName = scriptName.join(separator);
       if (!acc[groupName]) {
         acc[groupName] = [];
       }
 
-      acc[groupName].push({ ...item, remainderGroupName });
+      acc[groupName].push({ ...item, groupNameRemainder: remainderGroupName });
 
       return acc;
     }, {} as { [key: string]: ScriptNode[] });
@@ -181,7 +189,7 @@ export class NpmScriptsNodeProvider
         );
       } else {
         // Remove the item with no remainder (if exists)
-        const singleScript = scripts.findIndex((s) => !s.remainderGroupName);
+        const singleScript = scripts.findIndex((s) => !s.groupNameRemainder);
         if (singleScript !== -1) {
           const script = scripts[singleScript];
           items.push(
@@ -191,12 +199,16 @@ export class NpmScriptsNodeProvider
         }
 
         if (scripts.length > 0) {
-          const children = this.getTreeItemsRecursive(scripts, workspaceDir);
+          const children = this.getTreeItemsRecursive(
+            scripts,
+            workspaceDir,
+            separator
+          );
           items.push(
             new ScriptGroupTreeItem(
               groupName,
               TreeItemCollapsibleState.Collapsed,
-              `${groupName} Scripts`,
+              `${groupName} scripts`,
               children
             )
           );
@@ -215,14 +227,14 @@ export class NpmScriptsNodeProvider
   ): ScriptTreeItem {
     const cmdObject = {
       title: 'Run Script',
-      command: 'npmScripts.executeCommand',
+      command: 'nestedNpmScripts.executeCommand',
       arguments: [scriptName, workspaceDir],
     };
 
     return new ScriptTreeItem(
       label,
       TreeItemCollapsibleState.None,
-      `[${scriptName}] ${scriptCommand}`,
+      `${scriptName} • ${scriptCommand}`,
       cmdObject
     );
   }
@@ -245,5 +257,3 @@ export class NpmScriptsNodeProvider
     return true;
   }
 }
-
-type ScriptNode = { remainderGroupName: string; name: string; command: string };

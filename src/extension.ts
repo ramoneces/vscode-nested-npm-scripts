@@ -8,7 +8,8 @@ import { ITerminalMap } from './types';
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  const rootPath: string = vscode.workspace.rootPath || '.';
+  const rootPath: string =
+    vscode.workspace.workspaceFolders?.[0]?.uri?.path || '.';
 
   const terminals: ITerminalMap = new Map<string, vscode.Terminal>();
   const nodeProvider: NpmScriptsNodeProvider = new NpmScriptsNodeProvider(
@@ -19,8 +20,12 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.window.onDidCloseTerminal((term) => terminals.delete(term.name));
 
   vscode.commands.registerCommand(
-    'npmScripts.executeCommand',
+    'nestedNpmScripts.executeCommand',
     executeCommand(terminals)
+  );
+
+  vscode.commands.registerCommand('nestedNpmScripts.refresh', () =>
+    nodeProvider.refresh()
   );
 }
 

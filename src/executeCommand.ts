@@ -1,20 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {
-  MessageItem,
-  Terminal,
-  TerminalOptions,
-  WorkspaceConfiguration,
-  workspace,
-} from 'vscode';
-import { ConfigOptions, NPM_SCRIPTS } from './constants';
-import * as Message from './messages';
+import { Terminal, TerminalOptions, workspace } from 'vscode';
 import { ITerminalMap } from './types';
 import { makeTerminalPrettyName } from './utils';
 
 function resolveAutoPackageManager() {
-  const rootPath: string = vscode.workspace.rootPath || '.';
+  const rootPath: string =
+    vscode.workspace.workspaceFolders?.[0]?.uri?.path || '.';
 
   if (fs.existsSync(path.join(rootPath, 'package-lock.json'))) {
     return 'npm';
@@ -41,21 +34,6 @@ export function executeCommand(terminalMapping: ITerminalMap) {
     }
 
     const command: string = `${packageManager} run ${task}`;
-
-    const config: WorkspaceConfiguration =
-      workspace.getConfiguration(NPM_SCRIPTS);
-
-    if (config[ConfigOptions.showStart]) {
-      const hideMessages: MessageItem = { title: Message.HideMessages };
-      vscode.window
-        .showInformationMessage(command, hideMessages)
-        .then((result: MessageItem | undefined) => {
-          if (result === hideMessages) {
-            config.update(ConfigOptions.showStart, false, false);
-            vscode.window.showInformationMessage(Message.HideMessagesExtra);
-          }
-        });
-    }
 
     const name: string = makeTerminalPrettyName(cwd, task);
     let terminal: Terminal;
