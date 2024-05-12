@@ -22,6 +22,8 @@ For example, the following scripts:
 
 Will be displayed as:
 
+![alt text](resources/screenshot.png)
+
 ## Requirements
 
 None?

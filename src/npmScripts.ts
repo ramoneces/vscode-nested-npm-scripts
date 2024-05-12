@@ -4,7 +4,6 @@ import * as vscode from 'vscode';
 import {
   Event,
   EventEmitter,
-  FileSystemWatcher,
   TreeDataProvider,
   TreeItem,
   TreeItemCollapsibleState,
@@ -17,10 +16,6 @@ import { WorkspaceTreeItem } from './WorkspaceTreeItem';
 import { ConfigOptions, NESTED_NPM_SCRIPTS } from './constants';
 import { MaybeScript, ScriptEventEmitter, ScriptNode } from './types';
 
-function getPackageJson(root: string): string {
-  return path.join(root, 'package.json');
-}
-
 export class NpmScriptsNodeProvider
   implements
     TreeDataProvider<ScriptTreeItem | ScriptGroupTreeItem | WorkspaceTreeItem>
@@ -29,15 +24,8 @@ export class NpmScriptsNodeProvider
     new EventEmitter();
   public readonly onDidChangeTreeData: Event<MaybeScript> =
     this._onDidChangeTreeData.event;
-  private fileWatcher!: FileSystemWatcher;
 
-  constructor(private readonly workspaceRoot: string) {
-    workspace.workspaceFolders!.forEach((folder) => {
-      const pattern: string = getPackageJson(folder.uri.path);
-      this.fileWatcher = workspace.createFileSystemWatcher(pattern);
-      this.fileWatcher.onDidChange(() => this.refresh());
-    });
-  }
+  constructor(private readonly workspaceRoot: string) {}
 
   refresh(): void {
     this._onDidChangeTreeData.fire(undefined);
@@ -102,7 +90,7 @@ export class NpmScriptsNodeProvider
     packageJsonPath?: string
   ): void {
     if (!packageJsonPath) {
-      packageJsonPath = getPackageJson(this.workspaceRoot);
+      packageJsonPath = this.getPackageJson(this.workspaceRoot);
     }
     if (this.pathExists(packageJsonPath)) {
       resolve(this.mkTreeItemsFromPackageScripts(packageJsonPath));
@@ -118,14 +106,17 @@ export class NpmScriptsNodeProvider
     const treeItems: WorkspaceTreeItem[] = [];
     folders.forEach((folder: WorkspaceFolder): void => {
       const workspaceRoot: string = folder.uri.fsPath;
-      const packageJsonPath: string = getPackageJson(workspaceRoot);
+      const packageJsonPath: string = this.getPackageJson(workspaceRoot);
       const name = folder.name;
       if (this.pathExists(packageJsonPath)) {
+        const tooltip: vscode.MarkdownString = new vscode.MarkdownString();
+        tooltip.appendMarkdown(`**${name}** workspace\n\n`);
+        tooltip.appendMarkdown(`*${packageJsonPath}*`);
         treeItems.push(
           new WorkspaceTreeItem(
             name,
-            TreeItemCollapsibleState.Collapsed,
-            `${name} workspace • ${packageJsonPath}`
+            TreeItemCollapsibleState.Expanded,
+            tooltip
           )
         );
       }
@@ -156,7 +147,7 @@ export class NpmScriptsNodeProvider
 
     const config: vscode.WorkspaceConfiguration =
       workspace.getConfiguration(NESTED_NPM_SCRIPTS);
-    const separator = config[ConfigOptions.separatorCharacter] || ':';
+    const separator = config[ConfigOptions.separatorCharacter] ?? ':';
 
     return this.getTreeItemsRecursive(nodes, workspaceDir, separator);
   }
@@ -208,7 +199,7 @@ export class NpmScriptsNodeProvider
             new ScriptGroupTreeItem(
               groupName,
               TreeItemCollapsibleState.Collapsed,
-              `${groupName} scripts`,
+              new vscode.MarkdownString(`**${groupName}** scripts`),
               children
             )
           );
@@ -231,10 +222,14 @@ export class NpmScriptsNodeProvider
       arguments: [scriptName, workspaceDir],
     };
 
+    const tooltip: vscode.MarkdownString = new vscode.MarkdownString();
+    tooltip.appendMarkdown(`Run **${scriptName}** script`);
+    tooltip.appendCodeblock(scriptCommand, 'shell');
     return new ScriptTreeItem(
       label,
+      scriptCommand,
       TreeItemCollapsibleState.None,
-      `${scriptName} • ${scriptCommand}`,
+      tooltip,
       cmdObject
     );
   }
@@ -255,5 +250,9 @@ export class NpmScriptsNodeProvider
     }
 
     return true;
+  }
+
+  private getPackageJson(root: string): string {
+    return path.join(root, 'package.json');
   }
 }

@@ -2,6 +2,7 @@
   "name": "nested-npm-scripts",
   "displayName": "Nested NPM Scripts",
   "description": "Nested NPM Scripts Panel for VS Code: This extension replaces the default NPM Scripts panel in Visual Studio Code with a new panel that displays nested NPM scripts. It maintains the functionality of being able to execute these scripts directly from the panel. Developed using TypeScript, this extension aims to provide a more organized view of NPM scripts, especially for projects with a complex scripts structure.",
+  "icon": "resources/icon.png",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.89.0"
@@ -9,6 +10,11 @@
   "categories": [
     "Other"
   ],
+  "publisher": "ramoneces",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ramoneces/vscode-nested-npm-scripts"
+  },
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
@@ -27,9 +33,19 @@
       },
       {
         "command": "nestedNpmScripts.refresh",
-        "title": "Refresh"
+        "title": "Refresh",
+        "icon": "$(refresh)"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "nestedNpmScripts.refresh",
+          "when": "view == nestedNpmScripts",
+          "group": "navigation"
+        }
+      ]
+    },
     "configuration": {
       "type": "object",
       "title": "Nested NPM Scripts configuration",
@@ -43,6 +59,7 @@
     }
   },
   "scripts": {
+    "package:vsix": "npx vsce package",
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
     "watch": "webpack --watch",
@@ -65,7 +82,9 @@
     "ts-loader": "^9.5.1",
     "typescript": "^5.4.5",
     "webpack": "^5.91.0",
-    "webpack-cli": "^5.1.4",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
     "@vscode/vsce": "^2.26.1"
   }
 }

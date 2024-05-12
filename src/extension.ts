@@ -9,7 +9,7 @@ import { ITerminalMap } from './types';
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   const rootPath: string =
-    vscode.workspace.workspaceFolders?.[0]?.uri?.path || '.';
+    vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath ?? '.';
 
   const terminals: ITerminalMap = new Map<string, vscode.Terminal>();
   const nodeProvider: NpmScriptsNodeProvider = new NpmScriptsNodeProvider(

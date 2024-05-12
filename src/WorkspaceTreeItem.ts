@@ -1,5 +1,6 @@
 import {
   Command,
+  MarkdownString,
   ThemeColor,
   ThemeIcon,
   TreeItem,
@@ -10,7 +11,7 @@ export class WorkspaceTreeItem extends TreeItem {
   constructor(
     public readonly label: string,
     public readonly collapsibleState: TreeItemCollapsibleState,
-    public readonly tooltip: string,
+    public readonly tooltip: string | MarkdownString,
     public readonly command?: Command
   ) {
     super(label, collapsibleState);

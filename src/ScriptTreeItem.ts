@@ -1,5 +1,6 @@
 import {
   Command,
+  MarkdownString,
   ThemeColor,
   ThemeIcon,
   TreeItem,
@@ -9,8 +10,9 @@ import {
 export class ScriptTreeItem extends TreeItem {
   constructor(
     public readonly label: string,
+    public readonly description: string,
     public readonly collapsibleState: TreeItemCollapsibleState,
-    public readonly tooltip: string,
+    public readonly tooltip: string | MarkdownString,
     public readonly command?: Command
   ) {
     super(label, collapsibleState);

@@ -7,7 +7,7 @@ import { makeTerminalPrettyName } from './utils';
 
 function resolveAutoPackageManager() {
   const rootPath: string =
-    vscode.workspace.workspaceFolders?.[0]?.uri?.path || '.';
+    vscode.workspace.workspaceFolders?.[0]?.uri?.fsPath ?? '.';
 
   if (fs.existsSync(path.join(rootPath, 'package-lock.json'))) {
     return 'npm';
