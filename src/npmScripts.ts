@@ -173,7 +173,18 @@ export class NpmScriptsNodeProvider
 
     const items: (ScriptTreeItem | ScriptGroupTreeItem)[] = [];
     for (const [groupName, scripts] of Object.entries(groupedScripts)) {
+      // Items with no remainder are single scripts
+      const singleScript = scripts.findIndex((s) => !s.groupNameRemainder);
+      if (singleScript !== -1) {
+        const script = scripts[singleScript];
+        items.push(
+          this.toScript(groupName, script.name, script.command, workspaceDir)
+        );
+        scripts.splice(singleScript, 1);
+      }
+
       if (scripts.length === 1) {
+        // Single script don't group
         const [script] = scripts;
         items.push(
           this.toScript(
@@ -185,34 +196,23 @@ export class NpmScriptsNodeProvider
             workspaceDir
           )
         );
-      } else {
-        // Remove the item with no remainder (if exists)
-        const singleScript = scripts.findIndex((s) => !s.groupNameRemainder);
-        if (singleScript !== -1) {
-          const script = scripts[singleScript];
-          items.push(
-            this.toScript(groupName, script.name, script.command, workspaceDir)
-          );
-          scripts.splice(singleScript, 1);
-        }
-
-        if (scripts.length > 0) {
-          const children = this.getTreeItemsRecursive(
-            scripts,
-            workspaceDir,
-            separator
-          );
-          items.push(
-            new ScriptGroupTreeItem(
-              groupName,
-              TreeItemCollapsibleState.Collapsed,
-              new vscode.MarkdownString(
-                `${children.length} scripts under *${groupName}* group`
-              ),
-              children
-            )
-          );
-        }
+      } else if (scripts.length > 1) {
+        // Group scripts
+        const children = this.getTreeItemsRecursive(
+          scripts,
+          workspaceDir,
+          separator
+        );
+        items.push(
+          new ScriptGroupTreeItem(
+            groupName,
+            TreeItemCollapsibleState.Collapsed,
+            new vscode.MarkdownString(
+              `${children.length} scripts under *${groupName}* group`
+            ),
+            children
+          )
+        );
       }
     }
 

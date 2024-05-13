@@ -8,6 +8,8 @@
     "build:client": "echo 'Building client'",
     "build:server:dev": "echo 'Building server for development'",
     "build:server:prod": "echo 'Building server for production'",
-    "build:common:prod": "echo 'Building common for production'"
+    "build:common:prod": "echo 'Building common for production'",
+    "e2e": "echo 'Running end-to-end tests'",
+    "e2e:client": "echo 'Running client end-to-end tests'"
   }
 }

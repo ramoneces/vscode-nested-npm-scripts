@@ -8,6 +8,8 @@ The extension automatically detects the `package.json` file in the workspace and
 
 Workspaces with multiple `package.json` files are supported. The scripts are displayed in the `Nested NPM Scripts` view for each `package.json` file.
 
+No single script groups are displayed. If a script is the only one in its group, it is displayed as a single item.
+
 For example, the following scripts:
 
 ```json
@@ -18,7 +20,9 @@ For example, the following scripts:
     "build:client": "echo 'Building client'",
     "build:server:dev": "echo 'Building server for development'",
     "build:server:prod": "echo 'Building server for production'",
-    "build:common:prod": "echo 'Building common for production'"
+    "build:common:prod": "echo 'Building common for production'",
+    "e2e": "echo 'Running end-to-end tests'",
+    "e2e:client": "echo 'Running client end-to-end tests'"
   }
 }
 ```
@@ -33,6 +37,8 @@ Will be displayed as:
     - dev
     - prod
   - common:prod
+- e2e
+- e2e:client
 
 ## Requirements
 
