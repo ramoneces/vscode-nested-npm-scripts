@@ -176,7 +176,14 @@ export class NpmScriptsNodeProvider
       if (scripts.length === 1) {
         const [script] = scripts;
         items.push(
-          this.toScript(groupName, script.name, script.command, workspaceDir)
+          this.toScript(
+            script.groupNameRemainder
+              ? `${groupName}${separator}${script.groupNameRemainder}`
+              : groupName,
+            script.name,
+            script.command,
+            workspaceDir
+          )
         );
       } else {
         // Remove the item with no remainder (if exists)
@@ -199,7 +206,9 @@ export class NpmScriptsNodeProvider
             new ScriptGroupTreeItem(
               groupName,
               TreeItemCollapsibleState.Collapsed,
-              new vscode.MarkdownString(`**${groupName}** scripts`),
+              new vscode.MarkdownString(
+                `${children.length} scripts under *${groupName}* group`
+              ),
               children
             )
           );

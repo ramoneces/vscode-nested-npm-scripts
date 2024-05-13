@@ -6,6 +6,8 @@ This extension is a simple tool to organize npm scripts in a nested way. It is a
 
 The extension automatically detects the `package.json` file in the workspace and displays the scripts in the `Nested NPM Scripts` view. The scripts are organized in a nested way based on the script name. The script name is split by the separator (`:` by default) and the scripts are grouped by the first part of the name, recursively.
 
+Workspaces with multiple `package.json` files are supported. The scripts are displayed in the `Nested NPM Scripts` view for each `package.json` file.
+
 For example, the following scripts:
 
 ```json
@@ -15,14 +17,22 @@ For example, the following scripts:
     "build": "echo 'Building project'",
     "build:client": "echo 'Building client'",
     "build:server:dev": "echo 'Building server for development'",
-    "build:server:prod": "echo 'Building server for production'"
+    "build:server:prod": "echo 'Building server for production'",
+    "build:common:prod": "echo 'Building common for production'"
   }
 }
 ```
 
 Will be displayed as:
 
-![alt text](resources/screenshot.png)
+- start
+- build
+- build
+  - client
+  - server
+    - dev
+    - prod
+  - common:prod
 
 ## Requirements
 

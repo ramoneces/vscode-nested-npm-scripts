@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "moment": "^2.30.1"
+  },
+  "scripts": {
+    "start": "echo 'Starting project'",
+    "build": "echo 'Building project'",
+    "build:client": "echo 'Building client'",
+    "build:server:dev": "echo 'Building server for development'",
+    "build:server:prod": "echo 'Building server for production'",
+    "build:common:prod": "echo 'Building common for production'"
+  }
+}
