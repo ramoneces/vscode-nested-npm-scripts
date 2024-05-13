@@ -29,6 +29,8 @@ For example, the following scripts:
 
 Will be displayed as:
 
+![Example](resources/example.png)
+
 - start
 - build
 - build

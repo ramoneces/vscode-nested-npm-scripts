@@ -59,7 +59,8 @@
     }
   },
   "scripts": {
-    "package:vsix": "npx vsce package",
+    "vsce:package": "npx vsce package",
+    "vsce:publish": "npx vsce publish",
     "vscode:prepublish": "npm run package",
     "compile": "webpack",
     "watch": "webpack --watch",
